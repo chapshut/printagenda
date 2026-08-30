@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Agenda</title>
+<title>Yearly Agenda</title>
 <style>
   @page {
     size: A4 landscape;
@@ -98,7 +98,6 @@
     min-height: 0;
   }
 
-  /* Lege cute vakjes */
   .cute {
     border: 0.4pt dashed #ccc;
     background: #fafafa;
@@ -213,90 +212,78 @@
 <body>
 
 <div class="toolbar">
-  <strong>Agenda</strong>
+  <strong>Yearly Agenda</strong>
 
   <label>
-    Startmaand:
+    Start month:
     <input type="month" id="startMonth" value="2026-09">
   </label>
 
   <label>
-    Pagina's:
+    Pages:
     <select id="pageCount">
-      <option value="3">3 pagina's</option>
-      <option value="4">4 pagina's</option>
+      <option value="3">3 pages</option>
+      <option value="4">4 pages</option>
     </select>
   </label>
 
-  <button onclick="window.print()">🖨️ Printen</button>
+  <button onclick="window.print()">🖨️ Print</button>
   <button onclick="exportData()">⬇️ Export</button>
   <button onclick="document.getElementById('importFile').click()">⬆️ Import</button>
-  <button onclick="wissen()">🗑️ Wissen</button>
+  <button onclick="clearAll()">🗑️ Clear</button>
 
   <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
-  <span class="status" id="status">Automatisch opgeslagen</span>
+  <span class="status" id="status">Auto-saved</span>
 </div>
 
 <div id="pagesContainer"></div>
 
 <script>
-  const maanden = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
-  const dagen = ['ma','di','wo','do','vr','za','zo'];
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const days = ['Mo','Tu','We','Th','Fr','Sa','Su'];
   let STORAGE_KEY = 'agenda-2026-09';
 
-  // Leuke ASCII figuurtjes
   const cuteAnimals = [
-  // Katjes
-  `/\\_/\\\n( o.o )\n > ^ <`,
-  `/\\_/\\\n( ^.^ )\n (")(")`,
-  `(=^･ω･^=)\n  (   )\n  (   )`,
-
-  // Bunnies
-  `(\\_/)\n(•.•)\n/ >🥕`,
-  `(\\(\\ \n( -.-)\no_(")(")`,
-  `(\\(\\ \n(^.^)\n(")_(")`,
-
-  // Hondjes
-  ` U・ᴥ・U\n /    \\\n \\____/`,
-  `  ▲▲  \n (•ω•)\n /   \\`,
-
-  // Muisjes
-  ` (\\_/)\n==(•.•)==\n  /   \\`,
-  `(\\__/)\n(•ㅅ•)\n /  \\`,
-
-  // Hertjes
-  `  \\\\__/ \n ( o.o )\n  /| |\\`,
-  `   \\\\// \n  (••)\n  /||\\`,
-
-  // Andere cute
-  `  /\\_/\\ \n ( o.o )\n /     \\`,  // beertje
-  `  (\\_/) \n  (•ᴥ•)\n  /   \\`,  // beertje 2
-  `   /\\   \n  (oo)\n  /  \\`,    // kuikentje
-  `  .--.  \n ( o.o )\n  \\__/`     // uiltje
-];
+    `/\\_/\\\n( o.o )\n > ^ <`,
+    `/\\_/\\\n( ^.^ )\n (")(")`,
+    `(=^･ω･^=)\n  (   )\n  (   )`,
+    `(\\_/)\n(•.•)\n/ >🥕`,
+    `(\\(\\ \n( -.-)\no_(")(")`,
+    `(\\(\\ \n(^.^)\n(")_(")`,
+    ` U・ᴥ・U\n /    \\\n \\____/`,
+    `  ▲▲  \n (•ω•)\n /   \\`,
+    ` (\\_/)\n==(•.•)==\n  /   \\`,
+    `(\\__/)\n(•ㅅ•)\n /  \\`,
+    `  \\\\__/ \n ( o.o )\n  /| |\\`,
+    `   \\\\// \n  (••)\n  /||\\`,
+    `  /\\_/\\ \n ( o.o )\n /     \\`,
+    `  (\\_/) \n  (•ᴥ•)\n  /   \\`,
+    `   /\\   \n  (oo)\n  /  \\`,
+    `  .--.  \n ( o.o )\n  \\__/`
+  ];
 
   function getStorageKey(year, month) {
     return `agenda-${year}-${String(month + 1).padStart(2, '0')}`;
   }
 
-  function maakDag(datum) {
-    const yyyy = datum.getFullYear();
-    const mm = String(datum.getMonth() + 1).padStart(2, '0');
-    const dd = String(datum.getDate()).padStart(2, '0');
+  function createDay(date) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
     const id = `day-${yyyy}-${mm}-${dd}`;
 
-    const dagNr = datum.getDate();
-    const maandIndex = datum.getMonth();
-    const weekdag = dagen[datum.getDay() === 0 ? 6 : datum.getDay() - 1];
-    const isWeekend = (weekdag === 'za' || weekdag === 'zo');
-    const isEerste = dagNr === 1;
+    const dayNum = date.getDate();
+    const monthIndex = date.getMonth();
+    const weekday = days[date.getDay() === 0 ? 6 : date.getDay() - 1];
+    const isWeekend = (weekday === 'Sa' || weekday === 'Su');
+    const isFirst = dayNum === 1;
 
-    let label = isEerste
-      ? `${weekdag} ${dagNr} <span class="month-name">${maanden[maandIndex]}</span>`
-      : `${weekdag} ${dagNr}`;
+    let label = isFirst
+      ? `${weekday} ${dayNum} <span class="month-name">${months[monthIndex]}</span>`
+      : `${weekday} ${dayNum}`;
 
     const div = document.createElement('div');
-    div.className = `day month-${maandIndex}` + (isWeekend ? ' weekend' : '');
+    div.className = `day month-${monthIndex}` + (isWeekend ? ' weekend' : '');
     div.innerHTML = `
       <div class="day-label">${label}</div>
       <textarea class="day-write" id="${id}" rows="1"></textarea>
@@ -304,23 +291,22 @@
     return div;
   }
 
-  function maakCute() {
+  function createCute() {
     const div = document.createElement('div');
     div.className = 'cute';
-    // Kies willekeurig een diertje
     const animal = cuteAnimals[Math.floor(Math.random() * cuteAnimals.length)];
     div.textContent = animal;
     return div;
   }
 
-  function genereerAgenda() {
+  function generateAgenda() {
     const monthInput = document.getElementById('startMonth').value;
     const [yearStr, monthStr] = monthInput.split('-');
     const startYear = parseInt(yearStr);
     const startMonth = parseInt(monthStr) - 1;
-    const aantalPaginas = parseInt(document.getElementById('pageCount').value);
+    const pageCount = parseInt(document.getElementById('pageCount').value);
 
-    localStorage.setItem('agenda-pageCount', aantalPaginas);
+    localStorage.setItem('agenda-pageCount', pageCount);
 
     const container = document.getElementById('pagesContainer');
     container.innerHTML = '';
@@ -328,17 +314,17 @@
     const start = new Date(startYear, startMonth, 1);
     const end = new Date(startYear + 1, startMonth, 0);
 
-    const alleDagen = [];
+    const allDays = [];
     let current = new Date(start);
     while (current <= end) {
-      alleDagen.push(new Date(current));
+      allDays.push(new Date(current));
       current.setDate(current.getDate() + 1);
     }
 
-    const totaal = alleDagen.length;
-    const perPagina = Math.ceil(totaal / aantalPaginas);
+    const total = allDays.length;
+    const perPage = Math.ceil(total / pageCount);
 
-    for (let i = 0; i < aantalPaginas; i++) {
+    for (let i = 0; i < pageCount; i++) {
       const page = document.createElement('div');
       page.className = 'page';
       
@@ -349,38 +335,32 @@
       page.appendChild(daysDiv);
       container.appendChild(page);
 
-      const startIdx = i * perPagina;
-      const endIdx = Math.min(startIdx + perPagina, totaal);
+      const startIdx = i * perPage;
+      const endIdx = Math.min(startIdx + perPage, total);
       
-      const paginaDagen = alleDagen.slice(startIdx, endIdx);
+      const pageDays = allDays.slice(startIdx, endIdx);
       
-      // Echte dagen toevoegen
-      paginaDagen.forEach(d => {
-        daysDiv.appendChild(maakDag(d));
-      });
+      pageDays.forEach(d => daysDiv.appendChild(createDay(d)));
 
-      // Lege plekken opvullen met cute dieren (alleen op de laatste pagina meestal)
-      const huidigeAantal = paginaDagen.length;
-      const maxPerPagina = perPagina;
+      // Fill remaining slots with cute animals
+      const currentCount = pageDays.length;
+      const desired = Math.ceil(currentCount / 6) * 6;
+      const missing = desired - currentCount;
       
-      // We vullen tot een mooi veelvoud van 6 (aantal kolommen)
-      const gewenst = Math.ceil(huidigeAantal / 6) * 6;
-      const tekort = gewenst - huidigeAantal;
-      
-      for (let c = 0; c < tekort; c++) {
-        daysDiv.appendChild(maakCute());
+      for (let c = 0; c < missing; c++) {
+        daysDiv.appendChild(createCute());
       }
     }
 
     STORAGE_KEY = getStorageKey(startYear, startMonth);
-    laden();
+    loadData();
 
-    const eindMaand = (startMonth + 11) % 12;
+    const endMonth = (startMonth + 11) % 12;
     document.getElementById('status').textContent = 
-      `${maanden[startMonth]} ${startYear} → ${maanden[eindMaand]} ${startYear + 1} (${aantalPaginas} pagina's)`;
+      `${months[startMonth]} ${startYear} → ${months[endMonth]} ${startYear + 1} (${pageCount} pages)`;
   }
 
-  function verzamelData() {
+  function collectData() {
     const data = {};
     document.querySelectorAll('.day-write').forEach(ta => {
       if (ta.value.trim() !== '') data[ta.id] = ta.value;
@@ -388,19 +368,19 @@
     return data;
   }
 
-  function opslaan() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(verzamelData()));
+  function saveData() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData()));
     
     const statusEl = document.getElementById('status');
-    const oudeTekst = statusEl.textContent;
-    statusEl.textContent = 'Opgeslagen ✓';
+    const oldText = statusEl.textContent;
+    statusEl.textContent = 'Saved ✓';
     
     setTimeout(() => {
-      statusEl.textContent = oudeTekst;
+      statusEl.textContent = oldText;
     }, 1200);
   }
 
-  function laden() {
+  function loadData() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const data = JSON.parse(raw);
@@ -410,16 +390,16 @@
     });
   }
 
-  function wissen() {
-    if (confirm('Alle notities van deze periode wissen?')) {
+  function clearAll() {
+    if (confirm('Clear all notes for this period?')) {
       localStorage.removeItem(STORAGE_KEY);
       document.querySelectorAll('.day-write').forEach(ta => ta.value = '');
-      document.getElementById('status').textContent = 'Alles gewist';
+      document.getElementById('status').textContent = 'All cleared';
     }
   }
 
   function exportData() {
-    const data = verzamelData();
+    const data = collectData();
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -436,16 +416,16 @@
     reader.onload = function(e) {
       try {
         const data = JSON.parse(e.target.result);
-        if (confirm('Huidige notities overschrijven?')) {
+        if (confirm('Overwrite current notes with this file?')) {
           document.querySelectorAll('.day-write').forEach(ta => ta.value = '');
           Object.keys(data).forEach(id => {
             const ta = document.getElementById(id);
             if (ta) ta.value = data[id];
           });
-          opslaan();
+          saveData();
         }
       } catch (err) {
-        alert('Ongeldig bestand');
+        alert('Invalid file');
       }
     };
     reader.readAsText(file);
@@ -453,13 +433,13 @@
   }
 
   // Events
-  document.getElementById('startMonth').addEventListener('change', genereerAgenda);
-  document.getElementById('pageCount').addEventListener('change', genereerAgenda);
+  document.getElementById('startMonth').addEventListener('change', generateAgenda);
+  document.getElementById('pageCount').addEventListener('change', generateAgenda);
 
   document.addEventListener('input', function(e) {
     if (e.target.classList.contains('day-write')) {
       clearTimeout(window.saveTimeout);
-      window.saveTimeout = setTimeout(opslaan, 600);
+      window.saveTimeout = setTimeout(saveData, 600);
     }
   });
 
@@ -469,14 +449,14 @@
     }
   });
 
-  // Vorige instellingen herstellen
-  const opgeslagenPaginas = localStorage.getItem('agenda-pageCount');
-  if (opgeslagenPaginas) {
-    document.getElementById('pageCount').value = opgeslagenPaginas;
+  // Restore previous page count setting
+  const savedPages = localStorage.getItem('agenda-pageCount');
+  if (savedPages) {
+    document.getElementById('pageCount').value = savedPages;
   }
 
   // Start
-  genereerAgenda();
+  generateAgenda();
 </script>
 
 </body>
