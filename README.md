@@ -29,7 +29,7 @@ Perfect for planning a full year on just **3 or 4 A4 landscape pages**.
 ## How to use
 
 1. Download or clone this repository
-2. Open `index.html` in Chrome or Edge
+2. Open `printagenda.html` in Chrome or Edge
 3. Choose your **start month**
 4. Choose **3 or 4 pages**
 5. Start typing in the day boxes
