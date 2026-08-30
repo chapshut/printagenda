@@ -1,4 +1,3 @@
-<img width="1333" height="620" alt="Screenshot 2026-08-30 140343" src="https://github.com/user-attachments/assets/71e21454-cd09-4150-b106-8977d22c4b46" />
 
 # Yearly Agenda App
 
@@ -6,8 +5,8 @@ A beautiful, printable, fillable yearly agenda that runs entirely in your browse
 
 Perfect for planning a full year on just **3 or 4 A4 landscape pages**.
 
-![Agenda Preview](preview.png)  
-*(Add a screenshot here if you want)*
+  
+<img width="1333" height="620" alt="Screenshot 2026-08-30 140343" src="https://github.com/user-attachments/assets/71e21454-cd09-4150-b106-8977d22c4b46" />
 
 ---
 
