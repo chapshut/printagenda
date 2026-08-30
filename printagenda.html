@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<title>Agenda</title>
+<style>
+  @page {
+    size: A4 landscape;
+    margin: 5mm;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f0f0f0;
+    color: #111;
+  }
+
+  .toolbar {
+    background: #222;
+    color: white;
+    padding: 8px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    font-size: 14px;
+    flex-wrap: wrap;
+  }
+
+  .toolbar label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .toolbar button,
+  .toolbar select,
+  .toolbar input[type="month"] {
+    background: #444;
+    color: white;
+    border: 1px solid #555;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+  }
+
+  .toolbar button:hover {
+    background: #666;
+  }
+
+  .toolbar .status {
+    margin-left: auto;
+    font-size: 13px;
+    opacity: 0.85;
+  }
+
+  .page {
+    width: 287mm;
+    height: 200mm;
+    page-break-after: always;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: white;
+    margin: 20px auto;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  }
+
+  .page:last-child {
+    page-break-after: auto;
+  }
+
+  .days {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: 1fr;
+    gap: 0.45mm 1.6mm;
+    padding: 0.8mm;
+    height: 100%;
+  }
+
+  .day {
+    border: 0.4pt solid #666;
+    padding: 0.5mm 0.7mm;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  /* Lege cute vakjes */
+  .cute {
+    border: 0.4pt dashed #ccc;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    font-size: 8pt;
+    line-height: 1.15;
+    color: #94a3b8;
+    text-align: center;
+    white-space: pre;
+    padding: 1mm;
+  }
+
+  .month-0           { background-color: #ffe4e6; }
+  .month-0.weekend   { background-color: #c7d2fe; border-color: #4f46e5; }
+
+  .month-1           { background-color: #f3e8ff; }
+  .month-1.weekend   { background-color: #bbf7d0; border-color: #16a34a; }
+
+  .month-2           { background-color: #dcfce7; }
+  .month-2.weekend   { background-color: #fde68a; border-color: #d97706; }
+
+  .month-3           { background-color: #ffedd5; }
+  .month-3.weekend   { background-color: #bfdbfe; border-color: #2563eb; }
+
+  .month-4           { background-color: #fef9c3; }
+  .month-4.weekend   { background-color: #ddd6fe; border-color: #7c3aed; }
+
+  .month-5           { background-color: #e0f2fe; }
+  .month-5.weekend   { background-color: #fbcfe8; border-color: #db2777; }
+
+  .month-6           { background-color: #fee2e2; }
+  .month-6.weekend   { background-color: #a5f3fc; border-color: #0891b2; }
+
+  .month-7           { background-color: #ecfdf5; }
+  .month-7.weekend   { background-color: #fecdd3; border-color: #e11d48; }
+
+  .month-8           { background-color: #fff7ed; }
+  .month-8.weekend   { background-color: #c7d2fe; border-color: #4f46e5; }
+
+  .month-9           { background-color: #f5f3ff; }
+  .month-9.weekend   { background-color: #bbf7d0; border-color: #16a34a; }
+
+  .month-10          { background-color: #ccfbf1; }
+  .month-10.weekend  { background-color: #fde68a; border-color: #d97706; }
+
+  .month-11          { background-color: #e0e7ff; }
+  .month-11.weekend  { background-color: #fecdd3; border-color: #e11d48; }
+
+  .day-label {
+    font-size: 6.7pt;
+    font-weight: bold;
+    line-height: 1.15;
+    white-space: nowrap;
+    margin-bottom: 0.15mm;
+    flex-shrink: 0;
+    color: #0f172a;
+  }
+
+  .weekend .day-label {
+    color: #1e3a8a;
+  }
+
+  .month-name {
+    color: #be123c;
+    font-weight: 800;
+    font-size: 7pt;
+  }
+
+  .day-write {
+    flex: 1;
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 7.4pt;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 0.3mm 0 0 1.8mm;
+    overflow: hidden;
+    min-height: 0;
+    color: #134e4a;
+    white-space: nowrap;
+  }
+
+  @media print {
+    body {
+      background: white;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    .toolbar {
+      display: none !important;
+    }
+    .page {
+      margin: 0;
+      box-shadow: none;
+      width: 287mm;
+      height: 200mm;
+    }
+    .day-write {
+      border: none;
+      background: transparent;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <strong>Agenda</strong>
+
+  <label>
+    Startmaand:
+    <input type="month" id="startMonth" value="2026-09">
+  </label>
+
+  <label>
+    Pagina's:
+    <select id="pageCount">
+      <option value="3">3 pagina's</option>
+      <option value="4">4 pagina's</option>
+    </select>
+  </label>
+
+  <button onclick="window.print()">🖨️ Printen</button>
+  <button onclick="exportData()">⬇️ Export</button>
+  <button onclick="document.getElementById('importFile').click()">⬆️ Import</button>
+  <button onclick="wissen()">🗑️ Wissen</button>
+
+  <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+  <span class="status" id="status">Automatisch opgeslagen</span>
+</div>
+
+<div id="pagesContainer"></div>
+
+<script>
+  const maanden = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+  const dagen = ['ma','di','wo','do','vr','za','zo'];
+  let STORAGE_KEY = 'agenda-2026-09';
+
+  // Leuke ASCII figuurtjes
+  const cuteAnimals = [
+  // Katjes
+  `/\\_/\\\n( o.o )\n > ^ <`,
+  `/\\_/\\\n( ^.^ )\n (")(")`,
+  `(=^･ω･^=)\n  (   )\n  (   )`,
+
+  // Bunnies
+  `(\\_/)\n(•.•)\n/ >🥕`,
+  `(\\(\\ \n( -.-)\no_(")(")`,
+  `(\\(\\ \n(^.^)\n(")_(")`,
+
+  // Hondjes
+  ` U・ᴥ・U\n /    \\\n \\____/`,
+  `  ▲▲  \n (•ω•)\n /   \\`,
+
+  // Muisjes
+  ` (\\_/)\n==(•.•)==\n  /   \\`,
+  `(\\__/)\n(•ㅅ•)\n /  \\`,
+
+  // Hertjes
+  `  \\\\__/ \n ( o.o )\n  /| |\\`,
+  `   \\\\// \n  (••)\n  /||\\`,
+
+  // Andere cute
+  `  /\\_/\\ \n ( o.o )\n /     \\`,  // beertje
+  `  (\\_/) \n  (•ᴥ•)\n  /   \\`,  // beertje 2
+  `   /\\   \n  (oo)\n  /  \\`,    // kuikentje
+  `  .--.  \n ( o.o )\n  \\__/`     // uiltje
+];
+
+  function getStorageKey(year, month) {
+    return `agenda-${year}-${String(month + 1).padStart(2, '0')}`;
+  }
+
+  function maakDag(datum) {
+    const yyyy = datum.getFullYear();
+    const mm = String(datum.getMonth() + 1).padStart(2, '0');
+    const dd = String(datum.getDate()).padStart(2, '0');
+    const id = `day-${yyyy}-${mm}-${dd}`;
+
+    const dagNr = datum.getDate();
+    const maandIndex = datum.getMonth();
+    const weekdag = dagen[datum.getDay() === 0 ? 6 : datum.getDay() - 1];
+    const isWeekend = (weekdag === 'za' || weekdag === 'zo');
+    const isEerste = dagNr === 1;
+
+    let label = isEerste
+      ? `${weekdag} ${dagNr} <span class="month-name">${maanden[maandIndex]}</span>`
+      : `${weekdag} ${dagNr}`;
+
+    const div = document.createElement('div');
+    div.className = `day month-${maandIndex}` + (isWeekend ? ' weekend' : '');
+    div.innerHTML = `
+      <div class="day-label">${label}</div>
+      <textarea class="day-write" id="${id}" rows="1"></textarea>
+    `;
+    return div;
+  }
+
+  function maakCute() {
+    const div = document.createElement('div');
+    div.className = 'cute';
+    // Kies willekeurig een diertje
+    const animal = cuteAnimals[Math.floor(Math.random() * cuteAnimals.length)];
+    div.textContent = animal;
+    return div;
+  }
+
+  function genereerAgenda() {
+    const monthInput = document.getElementById('startMonth').value;
+    const [yearStr, monthStr] = monthInput.split('-');
+    const startYear = parseInt(yearStr);
+    const startMonth = parseInt(monthStr) - 1;
+    const aantalPaginas = parseInt(document.getElementById('pageCount').value);
+
+    localStorage.setItem('agenda-pageCount', aantalPaginas);
+
+    const container = document.getElementById('pagesContainer');
+    container.innerHTML = '';
+
+    const start = new Date(startYear, startMonth, 1);
+    const end = new Date(startYear + 1, startMonth, 0);
+
+    const alleDagen = [];
+    let current = new Date(start);
+    while (current <= end) {
+      alleDagen.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+
+    const totaal = alleDagen.length;
+    const perPagina = Math.ceil(totaal / aantalPaginas);
+
+    for (let i = 0; i < aantalPaginas; i++) {
+      const page = document.createElement('div');
+      page.className = 'page';
+      
+      const daysDiv = document.createElement('div');
+      daysDiv.className = 'days';
+      daysDiv.id = `days${i + 1}`;
+      
+      page.appendChild(daysDiv);
+      container.appendChild(page);
+
+      const startIdx = i * perPagina;
+      const endIdx = Math.min(startIdx + perPagina, totaal);
+      
+      const paginaDagen = alleDagen.slice(startIdx, endIdx);
+      
+      // Echte dagen toevoegen
+      paginaDagen.forEach(d => {
+        daysDiv.appendChild(maakDag(d));
+      });
+
+      // Lege plekken opvullen met cute dieren (alleen op de laatste pagina meestal)
+      const huidigeAantal = paginaDagen.length;
+      const maxPerPagina = perPagina;
+      
+      // We vullen tot een mooi veelvoud van 6 (aantal kolommen)
+      const gewenst = Math.ceil(huidigeAantal / 6) * 6;
+      const tekort = gewenst - huidigeAantal;
+      
+      for (let c = 0; c < tekort; c++) {
+        daysDiv.appendChild(maakCute());
+      }
+    }
+
+    STORAGE_KEY = getStorageKey(startYear, startMonth);
+    laden();
+
+    const eindMaand = (startMonth + 11) % 12;
+    document.getElementById('status').textContent = 
+      `${maanden[startMonth]} ${startYear} → ${maanden[eindMaand]} ${startYear + 1} (${aantalPaginas} pagina's)`;
+  }
+
+  function verzamelData() {
+    const data = {};
+    document.querySelectorAll('.day-write').forEach(ta => {
+      if (ta.value.trim() !== '') data[ta.id] = ta.value;
+    });
+    return data;
+  }
+
+  function opslaan() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(verzamelData()));
+    
+    const statusEl = document.getElementById('status');
+    const oudeTekst = statusEl.textContent;
+    statusEl.textContent = 'Opgeslagen ✓';
+    
+    setTimeout(() => {
+      statusEl.textContent = oudeTekst;
+    }, 1200);
+  }
+
+  function laden() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    Object.keys(data).forEach(id => {
+      const ta = document.getElementById(id);
+      if (ta) ta.value = data[id];
+    });
+  }
+
+  function wissen() {
+    if (confirm('Alle notities van deze periode wissen?')) {
+      localStorage.removeItem(STORAGE_KEY);
+      document.querySelectorAll('.day-write').forEach(ta => ta.value = '');
+      document.getElementById('status').textContent = 'Alles gewist';
+    }
+  }
+
+  function exportData() {
+    const data = verzamelData();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${STORAGE_KEY}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function importData(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (confirm('Huidige notities overschrijven?')) {
+          document.querySelectorAll('.day-write').forEach(ta => ta.value = '');
+          Object.keys(data).forEach(id => {
+            const ta = document.getElementById(id);
+            if (ta) ta.value = data[id];
+          });
+          opslaan();
+        }
+      } catch (err) {
+        alert('Ongeldig bestand');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  // Events
+  document.getElementById('startMonth').addEventListener('change', genereerAgenda);
+  document.getElementById('pageCount').addEventListener('change', genereerAgenda);
+
+  document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('day-write')) {
+      clearTimeout(window.saveTimeout);
+      window.saveTimeout = setTimeout(opslaan, 600);
+    }
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.target.classList.contains('day-write') && e.key === 'Enter') {
+      e.preventDefault();
+    }
+  });
+
+  // Vorige instellingen herstellen
+  const opgeslagenPaginas = localStorage.getItem('agenda-pageCount');
+  if (opgeslagenPaginas) {
+    document.getElementById('pageCount').value = opgeslagenPaginas;
+  }
+
+  // Start
+  genereerAgenda();
+</script>
+
+</body>
+</html>
